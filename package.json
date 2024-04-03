@@ -9,16 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nextui-org/react": "^2.2.10",
     "@spotify/basic-pitch": "^1.0.1",
+    "@tonejs/midi": "^2.0.28",
+    "audio-buffer": "^5.0.0",
+    "framer-motion": "^11.0.24",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-audio-voice-recorder": "^2.2.0",
+    "react-dom": "^18",
+    "react-icons": "^5.0.1",
+    "url-loader": "^4.1.1",
+    "web-audio-api": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "copy-webpack-plugin": "^12.0.2",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
