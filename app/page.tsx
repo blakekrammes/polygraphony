@@ -7,6 +7,8 @@
 
 import AudioRecorder from './audio';
 import Providers from './providers';
+import localFont from 'next/font/local';
+const gaudy = localFont({ src: '../public/fonts/goudy.woff' });
 
 // import { Midi } from '@tonejs/midi';
 // import fs from 'fs/promises';
@@ -57,9 +59,9 @@ export default async function Home() {
   // await fs.writeFile('test.mid', midi.toArray());
 
   return (
-    <main>
-      <h1 className='text-3xl ml-2'>Polygraphony</h1>
-      <div className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className={gaudy.className}>
+      <h1 className='text-4xl p-3'>Polygraphony</h1>
+      <div className='flex justify-center w-full'>
         <Providers>
           <AudioRecorder />
         </Providers>
