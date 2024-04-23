@@ -31,14 +31,13 @@ export default function AudioRecorder() {
       <Button
         onClick={!isRecording ? startRecording : stopRecording}
         color='default'
-        size='lg'
         isIconOnly
-        className={`rounded-full ${isRecording ? 'animate-pulse' : null}`}
+        className={`rounded-full w-20 h-20 ${isRecording ? 'animate-pulse' : null}`}
         startContent={
           !isRecording ? (
-            <FaMicrophone className='text-2xl' />
+            <FaMicrophone className='text-5xl' />
           ) : (
-            <FaRegStopCircle className='text-2xl' />
+            <FaRegStopCircle className='text-5xl' />
           )
         }
       />
