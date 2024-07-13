@@ -12,14 +12,16 @@
     "@nextui-org/react": "^2.2.10",
     "@spotify/basic-pitch": "^1.0.1",
     "@tonejs/midi": "^2.0.28",
-    "audio-buffer": "^5.0.0",
     "framer-motion": "^11.0.24",
+    "lodash": "^4.17.21",
     "next": "14.1.0",
+    "node-gyp": "^10.1.0",
     "react": "^18",
     "react-audio-voice-recorder": "^2.2.0",
     "react-dom": "^18",
     "react-icons": "^5.0.1",
     "url-loader": "^4.1.1",
+    "vexflow": "^4.2.3",
     "web-audio-api": "^0.2.2"
   },
   "devDependencies": {

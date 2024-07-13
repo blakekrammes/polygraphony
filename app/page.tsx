@@ -1,71 +1,50 @@
-// import {
-//   BasicPitch,
-//   addPitchBendsToNoteEvents,
-//   noteFramesToTime,
-//   outputToNotesPoly,
-// } from '@spotify/basic-pitch';
+'use client';
 
-import AudioRecorder from './audio';
+import { AudioRecorder } from './audio';
+// import { Metronome } from './metronome';
 import Providers from './providers';
+import RootLayout from './layout';
+import { Score } from './score';
 import localFont from 'next/font/local';
+import { useState } from 'react';
 const gaudy = localFont({ src: '../public/fonts/goudy.woff' });
 
-// import { Midi } from '@tonejs/midi';
-// import fs from 'fs/promises';
-// import model from '../public/model.json';
-
-export default async function Home() {
-  // while (audioBuffer === undefined) {
-  //   await new Promise((r) => setTimeout(r, 1));
-  // }
-
-  // const frames: number[][] = [];
-  // const onsets: number[][] = [];
-  // const contours: number[][] = [];
-  // let pct: number = 0;
-
-  // const basicPitch = new BasicPitch(model as unknown as string);
-
-  // await basicPitch.evaluateModel(
-  //   audioBuffer as unknown as AudioBuffer,
-  //   (f: number[][], o: number[][], c: number[][]) => {
-  //     frames.push(...f);
-  //     onsets.push(...o);
-  //     contours.push(...c);
-  //   },
-  //   (p: number) => {
-  //     pct = p;
-  //   }
-  // );
-
-  // const notes = noteFramesToTime(
-  //   addPitchBendsToNoteEvents(
-  //     contours,
-  //     outputToNotesPoly(frames, onsets, 0.25, 0.25, 5)
-  //   )
-  // );
-
-  // const midi = new Midi();
-  // const track = midi.addTrack();
-  // notes.forEach((note) => {
-  //   track.addNote({
-  //     midi: note.pitchMidi,
-  //     time: note.startTimeSeconds,
-  //     duration: note.durationSeconds,
-  //     velocity: note.amplitude,
-  //   });
-  // });
-
-  // await fs.writeFile('test.mid', midi.toArray());
-
+export default function Home() {
+  const [notes, setNotes] = useState<string[][] | null>(null);
+  // console.log(notes)
   return (
-    <main className={gaudy.className}>
+    <div className={gaudy.className}>
       <h1 className='text-4xl p-3'>Polygraphony</h1>
-      <div className='flex justify-center w-full'>
+      <div className='flex justify-center items-center w-full'>
         <Providers>
-          <AudioRecorder />
+          {/* <Metronome /> */}
+          <AudioRecorder writeNotes={setNotes} />
+          {/* {notes && <Score staves={[[['c4', 'h'], ['d4', 'h']]]} />} */}
+          <Score
+            staves={[
+              [
+                ['d4', 'h'],
+                ['e4', 'h'],
+              ],
+              [
+                ['d5', 'h'],
+                ['e5', 'h'],
+              ],
+              [
+                ['e5', 'h'],
+                ['f5', 'h'],
+              ],
+              [
+                ['g5', 'q'],
+                ['a5', 'q'],
+                ['b5', 'q'],
+                ['c6', '8'],
+                ['d6', '8']
+              ],
+            ]}
+          />
         </Providers>
       </div>
-    </main>
+    </div>
   );
 }
