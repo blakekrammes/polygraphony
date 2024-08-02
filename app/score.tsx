@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import VexFlow, { TickContext } from 'vexflow';
 
+import VexFlow from 'vexflow';
 import { partition } from 'lodash';
 
 interface Score {
@@ -12,7 +12,7 @@ interface Score {
 }
 
 const VF = VexFlow.Flow;
-const { Formatter, Renderer, Stave, StaveNote, StaveConnector } = VF;
+const { Formatter, Renderer, Stave, StaveNote, StaveConnector, Voice } = VF;
 
 const clefWidth = 30;
 const timeWidth = 30;
@@ -27,28 +27,6 @@ export const Score: React.FC<Score> = ({
   const container = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<InstanceType<typeof Renderer> | null>(null);
 
-  const processNote = (notes: any) =>
-    notes
-      .map((note: any) => (typeof note === 'string' ? { key: note } : note))
-      .map((note: any) =>
-        Array.isArray(note) ? { key: note[0], duration: note[1] } : note
-      )
-      .map(({ key, ...rest }) =>
-        typeof key === 'string'
-          ? {
-              key: key.includes('/') ? key : `${key[0]}/${key.slice(1)}`,
-              ...rest,
-            }
-          : rest
-      )
-      .map(
-        ({ key, keys, duration = 'q' }: any) =>
-          new StaveNote({
-            keys: key ? [key] : keys,
-            duration: String(duration),
-          })
-      );
-      
   useEffect(() => {
     if (!rendererRef.current && container.current) {
       rendererRef.current = new Renderer(
@@ -70,43 +48,40 @@ export const Score: React.FC<Score> = ({
       (width - clefAndTimeWidth - currX / (staves.length - 1)) / staves.length;
     const finalStaveWidth = (width - clefAndTimeWidth) / staves.length;
     staves.forEach((notes, i) => {
-      let stave, stave2;
-      if (i === staves.length - 1) {
-        stave = new Stave(currX, 0, finalStaveWidth);
-        stave2 = new Stave(currX, 100, finalStaveWidth);
-      } else {
-        stave = new Stave(currX, 0, staveWidth);
-        stave2 = new Stave(currX, 100, staveWidth);
-      }
+      const trebleStave = new Stave(
+        currX,
+        0,
+        i === staves.length - 1 ? finalStaveWidth : staveWidth
+      );
+      const bassStave = new Stave(
+        currX,
+        100,
+        i === staves.length - 1 ? finalStaveWidth : staveWidth
+      );
 
       if (i === 0) {
-        const brace = new StaveConnector(stave, stave2).setType(3);
-        stave.setWidth(staveWidth + clefAndTimeWidth);
-        stave2.setWidth(staveWidth + clefAndTimeWidth);
+        const brace = new StaveConnector(trebleStave, bassStave).setType(3);
+        trebleStave.setWidth(staveWidth + clefAndTimeWidth);
+        bassStave.setWidth(staveWidth + clefAndTimeWidth);
         brace.setContext(context).draw();
         if (clef) {
-          stave.addClef(clef);
-          stave2.addClef('bass');
+          trebleStave.addClef(clef);
+          bassStave.addClef('bass');
         }
         if (timeSignature) {
-          stave.addTimeSignature(timeSignature);
-          stave2.addTimeSignature(timeSignature);
+          trebleStave.addTimeSignature(timeSignature);
+          bassStave.addTimeSignature(timeSignature);
         }
       }
-      const lineLeft = new StaveConnector(stave, stave2).setType(1);
+      const lineLeft = new StaveConnector(trebleStave, bassStave).setType(1);
       lineLeft.setContext(context).draw();
 
-      currX += stave.getWidth();
-      stave.setContext(context).draw();
-      stave2.setContext(context).draw();
-      // const trebleNotes = notes
-      const [trebleNotes, bassNotes] = partition(notes, (n) => {
+      currX += trebleStave.getWidth();
+      trebleStave.setContext(context).draw();
+      bassStave.setContext(context).draw();
 
-      });
-      // const processedNotes =
-      return;
       if (i === staves.length - 1) {
-        const double = new StaveConnector(stave, stave2).setType(
+        const double = new StaveConnector(trebleStave, bassStave).setType(
           'boldDoubleRight'
         );
         // // a bit hacky, but it works...
@@ -114,18 +89,91 @@ export const Score: React.FC<Score> = ({
         const doubleBarOffset = Math.round(
           staveWidth - (braceWidth - staveWidthDiff)
         );
-        stave.setX(
+        trebleStave.setX(
           currX - (Math.round(staveWidth) + braceWidth - staveWidthDiff)
         );
         double.setContext(context).draw();
-        stave.setBegBarType(7);
-        stave.draw();
-        stave.setX(currX - doubleBarOffset - braceWidth);
+        trebleStave.setBegBarType(7);
+        trebleStave.draw();
+        trebleStave.setX(currX - doubleBarOffset - braceWidth);
+      }
+      let currentClef: 'treble' | 'bass' = 'treble';
+      const processedNotes = notes
+        .map((note) => (typeof note === 'string' ? { key: note } : note))
+        .map((note) =>
+          Array.isArray(note) ? { key: note[0], duration: note[1] } : note
+        )
+        .map(({ key, ...rest }) =>
+          typeof key === 'string'
+            ? {
+                key: key.includes('/') ? key : `${key[0]}/${key.slice(1)}`,
+                ...rest,
+              }
+            : rest
+        )
+        .map(({ key, keys, duration = 'q' }: any) => {
+          const keysRes = key ? [key] : keys;
+          const octaveNum = Number(keysRes[0].slice(-1));
+          if (octaveNum > 4) {
+            currentClef = 'treble';
+          } else if (octaveNum < 4) {
+            currentClef = 'bass';
+          }
+          return new StaveNote({
+            keys: keysRes,
+            duration: String(duration),
+            clef: currentClef,
+          });
+        });
+
+      const [trebleNotes, bassNotes] = partition(
+        processedNotes,
+        (n) => n.getAttributes().clef === 'treble'
+      );
+
+      const trebleVoice = new Voice({ num_beats: 4, beat_value: 4 });
+      const bassVoice = new Voice({ num_beats: 4, beat_value: 4 });
+
+      // const voice = new Voice();
+      // const bassVoice = new Voice();
+
+      // voice.addTickables(proce//ssedNotes);
+
+      trebleVoice.addTickables(trebleNotes);
+      bassVoice.addTickables(bassNotes);
+      // new Formatter().formatToStave([voice], stave);
+
+      // voice.draw(context, stave);
+      // bassVoice.draw(context, stave2);
+
+      // new Formatter().joinVoices([voice]).format([voice], 700);
+
+      // const [trebleNotes, bassNotes] = partition(
+      //   processedNotes,
+      //   (n: StaveNote) => n.getAttributes().clef === 'treble'
+      // );
+      const formatter = new Formatter();
+
+      if (trebleNotes.length > 0) {
+        console.log(trebleNotes);
+        formatter.format([trebleVoice]);
+        trebleVoice.draw(context, trebleStave);
+
+        // Formatter.formatToStave();
+        // Formatter.FormatAndDraw(context, trebleStave, trebleNotes);
+        // Formatter.FormatAndDraw(context, trebleStave, trebleNotes as any[], {
+        //   auto_beam: true,
+        // });
       }
 
-      Formatter.FormatAndDraw(context, stave, processedNotes, {
-        auto_beam: true,
-      });
+      if (bassNotes.length > 0) {
+        // console.log(bassNotes);
+        // formatter.formatToStave([bassVoice], bassStave);
+        formatter.format([bassVoice]);
+        bassVoice.draw(context, bassStave);
+
+        // Formatter.FormatAndDraw(context, bassStave, bassNotes);
+      }
     });
   }, [clef, height, staves, timeSignature, width]);
 

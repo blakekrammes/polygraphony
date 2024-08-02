@@ -43,7 +43,7 @@ export const AudioRecorder: React.FC<AudioRecorder> = ({ writeNotes }) => {
 
   useEffect(() => {
     if (!recordingBlob) return;
-    handleProcessAudio(recordingBlob);
+    // handleProcessAudio(recordingBlob);
     // recordingBlob will be present at this point after 'stopRecording' has been called
   }, [recordingBlob]);
 
